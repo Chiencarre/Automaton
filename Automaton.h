@@ -39,6 +39,8 @@ public:
 
     void makeDeterministic();
 
+    void makeEFree();
+
     ~Automaton();
 };
 

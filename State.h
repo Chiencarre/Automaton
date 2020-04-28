@@ -31,9 +31,15 @@ public:
 
     std::vector<Transition> getTransitions();
 
+    std::vector<Transition> getETransition();
+
     int getNumber();
 
     void setTransitions(std::vector<Transition> p_transitions);
+
+    void addTransition(Transition p_transition);
+
+    void deleteTransition(int p_it_transition);
 
     std::string print();
 };

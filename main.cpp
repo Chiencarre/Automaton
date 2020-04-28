@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
             std::string words_file_name = argv[3];
             std::string result_file_name = argv[4];
             Automaton automaton = Automaton(automaton_file_name);
+            automaton.print();
             AutomatonHelper::readWordsFromFile(automaton, words_file_name, result_file_name);
 
         } else //Minimization
@@ -29,6 +30,11 @@ int main(int argc, char **argv) {
             automaton.makeDeterministic();
             std::cout << automaton.print();
             AutomatonHelper::writeAutomatonToFile(automaton, result_file_name);
+        } else //Removal of epsilon transitions
+        if(mode ==3){
+            std::string result_file_name = argv[3];
+            Automaton automaton = Automaton(automaton_file_name);
+            automaton.makeEFree();
         }
         return 0;
     }

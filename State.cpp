@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <iterator>
 #include "State.h"
 
 State::State() {}
@@ -47,3 +48,22 @@ int State::getNumber() {
 }
 
 State::~State() {}
+
+std::vector<Transition> State::getETransition() {
+    std::vector<Transition> eTrans;
+    for(int i = 0; i < transitions.size(); ++i){
+        if(transitions.at(i).getLabel() == '#'){
+            eTrans.push_back(transitions.at(i));
+        }
+    }
+    return eTrans;
+}
+
+void State::addTransition(Transition p_transition) {
+    transitions.push_back(p_transition);
+}
+
+void State::deleteTransition(int p_it_transition) {
+    std::cout << transitions.at(p_it_transition).getTo()->getNumber() << " " << transitions.at(p_it_transition).getLabel();
+    transitions.erase(transitions.begin() +p_it_transition);
+}
