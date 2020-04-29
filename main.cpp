@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
             std::string result_file_name = argv[3];
             Automaton automaton = Automaton(automaton_file_name);
             automaton.makeEFree();
+            std::cout << automaton.print();
         }
         return 0;
     }

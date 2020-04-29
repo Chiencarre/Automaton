@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <algorithm>
 #include "utils.h"
 #include "Automaton.h"
 
@@ -390,7 +391,7 @@ void Automaton::makeEFree() {
     //TODO
     bool found = false;
     std::vector<State> current_states;
-    State *last_state;
+    int last_state;
     std::vector<State> next_states;
     std::set<State *> all_states;
     std::vector<State> new_states;
@@ -412,7 +413,7 @@ void Automaton::makeEFree() {
                             next_states.push_back(*current_trans.getTo());
                         }
                     } else if (current_trans.getTo()->getNumber() == begin_state.getNumber()) {
-                        last_state = &current_state;
+                        last_state = current_state.getNumber();
                         found = true;
                     }
                 }
@@ -424,43 +425,46 @@ void Automaton::makeEFree() {
     } while (next_states.size() != 0 && found == false);
     if (found) {
 
-        //TODO !! Le erase ne fonctionne pas. Vérifier quelles transitions sont où comment...
+        //TODO !! intial state and final state for fusion
         //Last state has been found and a loop has been found
-        //Every transition targeting begin state now target last_state
         std::vector<int> transitions_to_delete;
         std::vector<Transition> transitions_to_add;
         for (int i = 0; i < states.size(); ++i) {
             State *current_state = &states.at(i);
 
             for (int j = 0; j < current_state->getTransitions().size(); ++j) {
-                Transition current_trans = current_state->getTransitions().at(j);
-                if (current_trans.getTo()->getNumber() == begin_state.getNumber()) {
-                    std::cout <<states.at(i).getTransitions().at(j).getTo() << states.at(i).getTransitions().at(j).getTo() << "\n";
+                Transition *current_trans = &current_state->getTransitions().at(j);
 
-                    transitions_to_add.push_back(Transition(last_state, current_trans.getLabel()));
-                    transitions_to_delete.push_back(j);
+                if(current_trans->getTo()->getNumber() == begin_state.getNumber() && (current_state->getNumber() != last_state || current_trans->getLabel() != '#')){
+                    transitions_to_add.push_back(Transition(&states.at(last_state), current_trans->getLabel()));
+                    current_trans->setTo(nullptr);
+                } else if (current_state->getNumber() == begin_state.getNumber() && (current_trans->getTo()->getNumber() != last_state || current_trans->getLabel() != '#')) {
+                    states.at(last_state).addTransition(
+                            Transition(current_trans->getTo(), current_trans->getLabel()));
+                    current_trans->setTo(nullptr);
+                } else if (current_trans->getTo()->getNumber() == begin_state.getNumber() || current_state->getNumber() == begin_state.getNumber()) {
+                    current_trans->setTo(nullptr);
                 }
-            }
-
-            for(int i = 0; i < transitions_to_delete.size();i++){
-                std::cout << transitions_to_delete.at(i)<< "\n";
-                std::cout << " dernier for \n";
-                //std::cout <<current_state->getTransitions().at(transitions_to_delete.at(i)).getTo() << current_state->getTransitions().at(transitions_to_delete.at(i)).getTo() << "\n";
-            }
-
-            for(int i = 0; i < transitions_to_delete.size(); ++i){
-                std::cout << current_state->getNumber()<< "\n";
-                current_state->deleteTransition(transitions_to_delete.at(i));
-                std::cout << "here \n";
 
             }
+            std::vector<Transition> transition_state = current_state->getTransitions();
+            //Remove transitions marked with nullptr
+            transition_state.erase(std::remove_if(transition_state.begin(),
+                                                  transition_state.end(), [](Transition &transition) {
+                        return transition.getTo() == nullptr;
+                    }), transition_state.end());
+            current_state->setTransitions(transition_state);
 
+            //Add the new transitions
+            for (int k = 0; k < transitions_to_add.size(); ++k) {
+                current_state->addTransition(transitions_to_add.at(k));
+            }
+            transitions_to_add.clear();
         }
 
     }
 
-
-    //}
+//}
 
 
 }

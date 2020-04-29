@@ -39,7 +39,7 @@ void State::setTransitions(std::vector<Transition> p_transitions){
     transitions = p_transitions;
 }
 
-std::vector<Transition> State::getTransitions() {
+std::vector<Transition>& State::getTransitions() {
     return transitions;
 }
 
@@ -64,6 +64,6 @@ void State::addTransition(Transition p_transition) {
 }
 
 void State::deleteTransition(int p_it_transition) {
-    std::cout << transitions.at(p_it_transition).getTo()->getNumber() << " " << transitions.at(p_it_transition).getLabel();
+    //std::cout << transitions.at(p_it_transition).getTo()->getNumber() << " " << transitions.at(p_it_transition).getLabel();
     transitions.erase(transitions.begin() +p_it_transition);
 }

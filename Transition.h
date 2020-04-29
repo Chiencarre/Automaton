@@ -10,7 +10,6 @@
 class State;
 class Transition {
 private:
-    //TODO CHANGER INT EN POINTEUR
     State *to; //Index of state in the state vector
     char label;
 

@@ -29,7 +29,7 @@ public:
 
     bool isFin();
 
-    std::vector<Transition> getTransitions();
+    std::vector<Transition>& getTransitions();
 
     std::vector<Transition> getETransition();
 
