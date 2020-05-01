@@ -1,6 +1,3 @@
-//
-// Created by lenna on 19/04/2020.
-//
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -304,7 +301,7 @@ void Automaton::makeDeterministic() {
             for (auto c = alphabet.cbegin(); c != alphabet.cend(); ++c) {
                 //Parse every state the current state has been made off
                 std::vector<std::string> every_states;
-                utils::splitString(current_state->first, every_states, '-');
+                splitString(current_state->first, every_states, '-');
                 //For each of theses states
                 for (int i = 0; i < every_states.size(); ++i) {
                     State current_state = states.at(std::stoi(every_states.at(i)));
@@ -342,7 +339,7 @@ void Automaton::makeDeterministic() {
         bool isFin = false;
         bool isInit = true;
         std::vector<std::string> results;
-        utils::splitString(it->first, results, '-');
+        splitString(it->first, results, '-');
         //State is onitial only if all the states it has been made off are initials
         for (int i = 0; i < results.size(); ++i) {
             isInit = isInit && states.at(std::stoi(results.at(i))).isInit();

@@ -1,0 +1,46 @@
+The program allows the creation of an automaton (AFN, AFD), reading words from a file, its determinisation,
+its minimisation and the removal of epsilon transitions, if it has some.
+
+
+Work done:
+- Check of the argument count
+- No check of the file format (good description of the automaton)
+- AFD handled,
+- AFN handled,
+- Reading words from an AFD and an AFN
+- Determinisation possible,
+- Minimisation possible,
+- Removal of espilon transitions possible, although when merging equivalent states, the program does not check if transition already exists before creating it.
+
+
+Requirements:
+- C++11
+- CMake (v.14 min)
+- GNU Make
+- GNU compiler
+
+
+Compilation:
+Be sure that CMakeLists.txt and the .cpp and .h files are in the same folder.
+Create makefile :
+  cmake .
+Make:
+  make
+Usage:
+./lanceur <mode> <file_path_one> <file_path_two> <file_path_3>
+  mode 0: reading words from file
+   file_path_one: file with the automaton description.
+   file_path_two: file with the words to read.
+   file_path_three: file with the reading words results.
+  mode 1: determinisation
+   file_path_one: file with the automaton description.
+   file_path_two: file with the resulting automaton.
+   file_path_three: NULL.
+  mode 2: minimisation
+   file_path_one: file with the automaton description.
+   file_path_two: file with the resulting automaton.
+   file_path_three: NULL.
+  mode 3: removal of epsilon transitions
+   file_path_one: file with the automaton description.
+   file_path_two: file with the resulting automaton.
+   file_path_three: NULL.

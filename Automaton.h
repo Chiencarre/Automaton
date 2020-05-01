@@ -1,12 +1,7 @@
-//
-// Created by lenna on 19/04/2020.
-//
-
 #include <vector>
 #include <string>
 #include "State.h"
 #include "Transition.h"
-//#include "utils.h"
 
 
 #ifndef UNTITLED_AUTOMATON_H

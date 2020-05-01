@@ -1,15 +1,9 @@
-//
-// Created by lenna on 19/04/2020.
-//
-
 #include "AutomatonHelper.h"
 #include <fstream>
 #include <iostream>
 
-AutomatonHelper::AutomatonHelper() {}
 
-
-void AutomatonHelper::readWordsFromFile(Automaton p_automaton, std::string p_words_file_name,
+void readWordsFromFile(Automaton p_automaton, std::string p_words_file_name,
                                         std::string p_results_file_name) {
     std::ifstream words_file(p_words_file_name);
     std::ofstream results_file(p_results_file_name);
@@ -26,9 +20,7 @@ void AutomatonHelper::readWordsFromFile(Automaton p_automaton, std::string p_wor
 }
 
 
-AutomatonHelper::~AutomatonHelper() {}
-
-void AutomatonHelper::writeAutomatonToFile(Automaton p_automaton, std::string p_result_file_name) {
+void writeAutomatonToFile(Automaton p_automaton, std::string p_result_file_name) {
     std::ofstream result_file(p_result_file_name);
     if(result_file){
         result_file << p_automaton.print();

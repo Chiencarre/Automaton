@@ -1,8 +1,3 @@
-//
-// Created by lenna on 19/04/2020.
-//
-
-#include <iostream>
 #include "Transition.h"
 
 Transition::Transition() {}
