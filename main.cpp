@@ -3,14 +3,13 @@
 #include "utils.h"
 
 int main(int argc, char **argv) {
-    if (argc <= 1 || argc > 5) {
+    if (argc <= 2 || argc > 5) {
         std::cerr << "The program needs at least three arguments.\n";
         usage();
         return 1;
     } else {
         int mode = *argv[1] - '0';
         std::string automaton_file_name = argv[2];
-
         //Word test
         if (mode == 0) {
             if (argc == 5) {
@@ -32,7 +31,7 @@ int main(int argc, char **argv) {
                 std::cout << "Minimization completed. Check the file " << result_file_name << ".\n";
             } else {
                 usage();
-            };
+            }
 
         } else //Make deterministic
         if (mode == 2) {
