@@ -84,36 +84,14 @@ Automaton::Automaton(std::string p_file_name) {
         }
 
     } else {
-        std::cout << " Creating automaton : opening failed";
+        std::cout << "Creating automaton : opening failed";
     }
 }
 
 Automaton::~Automaton() {}
 
-void Automaton::setAlphabet(std::string p_alphabet) {
-    alphabet = p_alphabet;
-}
-
-void Automaton::setStates(std::vector<State> p_states) {
-    states = p_states;
-    for (int i = 0; i < states.size(); ++i) {
-        if (states.at(i).isInit()) {
-            initial_states.push_back(i);
-        }
-        if (states.at(i).isFin()) {
-            final_states.push_back(i);
-        }
-    }
-}
-
-std::string Automaton::getAlphabet() {
-    return alphabet;
-}
-
-
 std::string Automaton::print() {
     std::string automaton = alphabet + "\n" + std::to_string(states.size()) + "\n";
-
     for (int i = 0; i < states.size(); ++i) {
         automaton += states.at(i).print();
     }
@@ -144,12 +122,14 @@ bool Automaton::isWordAccepted(std::string p_word) {
         if (current_states_2.size() == 0) {
             stuck = true;
         } else {
+            //Go on to the next label of the word
             label = std::next(label, 1);
             current_states = current_states_2;
             current_states_2.clear();
         }
     }
     int index = 0;
+    //If the word is read entirely but we are not on a final state
     while (index < current_states.size() && wordAccepted == false) {
         wordAccepted = states.at(current_states.at(index)).isFin();
         index++;
@@ -163,13 +143,13 @@ void Automaton::minimize() {
     int alphabet_size = alphabet.size();
     int number_states = states.size();
 
-    //Fill the first part of the table
+    //Fill the table with each destination state for each letter of the alphabet
     for (auto c = alphabet.cbegin(); c != alphabet.cend(); ++c) {
         for (int j = 0; j < number_states; ++j) {
             State current_state = states.at(j);
             std::vector<Transition> transitions = current_state.getTransitions();
             for (int k = 0; k < transitions.size(); ++k) {
-                //If there is a transition from this state with this letter, push back the to state.
+                //If there is a transition from this state with this letter, push back the to_state.
                 if (transitions.at(k).getLabel() == *c) {
                     letter_info.push_back(transitions.at(k).getTo()->getNumber());
                 }
@@ -192,7 +172,6 @@ void Automaton::minimize() {
     }
     table.push_back(group);
     //First three columns done
-    //Good until here
 
     int current_group_index;
     int previous_group_index;
@@ -204,6 +183,7 @@ void Automaton::minimize() {
         previous_group.clear();
         previous_group_index = table.size() - 1;
 
+        //For each char of the alphabet, put the to_state new group
         for (int c = 0; c < alphabet_size; ++c) {
             for (int i = 0; i < number_states; ++i) {
                 int to_state = table.at(c).at(i);
@@ -213,9 +193,12 @@ void Automaton::minimize() {
             column.clear();
         }
         current_group_index = table.size();
-        int classe_name = 0;
 
+
+        int classe_name = 0; //Used in the map to later create the new states
         std::map<std::string, int> groups;
+
+        //Create the new class
         for (int j = 0; j < number_states; ++j) {
             std::string classe = "";
             for (int i = previous_group_index; i < current_group_index; ++i) {
@@ -223,11 +206,11 @@ void Automaton::minimize() {
             }
             std::pair<std::map<std::string, int>::iterator, bool> ptr;
             ptr = groups.insert({classe, classe_name});
-            //If classe has been added, ie, if classe was not already present
-            if (ptr.second) {
+            //If classe has been added, ie, if classe was not already present in the map
+            if (ptr.second) { //Push the class to the current group
                 current_group.push_back(classe_name);
                 classe_name++;
-            } else {
+            } else { //Push the already exisiting class
                 current_group.push_back(groups.at(classe));
             }
             classe = "";
@@ -235,7 +218,6 @@ void Automaton::minimize() {
         table.push_back(current_group);
         previous_group = table.at(previous_group_index);
     } while (current_group != previous_group);
-    //Good until here
 
     //Now modify the automaton !!
     std::set<int> state_set;
@@ -243,8 +225,10 @@ void Automaton::minimize() {
     //Create the new states
     for (int i = 0; i < current_group.size(); ++i) {
         std::pair<std::set<int>::iterator, bool> ptr;
+        //Group is now a new state
         ptr = state_set.insert(current_group.at(i));
-        if (ptr.second) {
+        //If it has been added as a state
+        if (ptr.second) { //Check its initial and final characteristics
             int index = 0;
             int isInit = 0;
             int isFin = 0;
@@ -261,9 +245,7 @@ void Automaton::minimize() {
         }
     }
 
-    //Good until here
     //Create the new transitions
-    std::set<int> copy_state_set = state_set;
     initial_states.clear();
     final_states.clear();
     std::vector<Transition> transitions;
@@ -279,6 +261,7 @@ void Automaton::minimize() {
             new_states.at(index).setTransitions(transitions);
             transitions.clear();
             state_set.erase(current_state);
+
             //Redo initial_states and final_states
             if (new_states.at(index).isInit()) {
                 initial_states.push_back(index);
@@ -290,7 +273,6 @@ void Automaton::minimize() {
         index++;
     }
     states = new_states;
-    //Good until here
 }
 
 void Automaton::makeDeterministic() {
@@ -298,6 +280,7 @@ void Automaton::makeDeterministic() {
     std::vector<int> new_finals;
 
     std::vector<std::vector<std::string>> table;
+    //Key is the state and value is the index of the future state
     std::map<std::string, int> map_next_states;
     std::map<std::string, int> map_states;
     std::map<std::string, int> map_current_states;
@@ -305,7 +288,7 @@ void Automaton::makeDeterministic() {
     std::string next_state = "";
     std::vector<std::string> string_next_states;
 
-    //initialisation
+    //Next_states are all the initial states
     for (int i = 0; i < initial_states.size(); ++i) {
         next_state += std::to_string(states.at(initial_states.at(i)).getNumber()) + "-";
     }
@@ -314,12 +297,16 @@ void Automaton::makeDeterministic() {
 
     do {
         map_next_states.clear();
+        //For each state in the current states
         for (auto current_state = map_current_states.cbegin();
              current_state != map_current_states.cend(); ++current_state) {
 
+            //For each letter of the alphabet
             for (auto c = alphabet.cbegin(); c != alphabet.cend(); ++c) {
+                //Parse every state the current state has been made off
                 std::vector<std::string> every_states;
                 utils::splitString(current_state->first, every_states, '-');
+                //For each of theses states
                 for (int i = 0; i < every_states.size(); ++i) {
                     State current_state = states.at(std::stoi(every_states.at(i)));
                     //For each transition of the current state
@@ -333,6 +320,7 @@ void Automaton::makeDeterministic() {
                         }
                     }
                 }
+
                 string_next_states.push_back(next_state);
                 //If next state is not present in the current states, add it to next states
                 if (map_states.find(next_state) == map_states.cend()) {
@@ -343,6 +331,7 @@ void Automaton::makeDeterministic() {
             table.push_back(string_next_states);
             string_next_states.clear();
         }
+        //Insert all the next states in the map_states
         for (auto it = map_next_states.cbegin(); it != map_next_states.cend(); ++it) {
             map_states.insert(*it);
         }
@@ -355,10 +344,12 @@ void Automaton::makeDeterministic() {
         bool isInit = true;
         std::vector<std::string> results;
         utils::splitString(it->first, results, '-');
+        //State is onitial only if all the states it has been made off are initials
         for (int i = 0; i < results.size(); ++i) {
             isInit = isInit && states.at(std::stoi(results.at(i))).isInit();
         }
         int index = 0;
+        //State is final if one of the states it has been made off is final
         while (index < results.size() && isFin == false) {
             isFin = states.at(std::stoi(results.at(index))).isFin();
             if (isFin) {
@@ -367,6 +358,7 @@ void Automaton::makeDeterministic() {
             index++;
         }
         new_states.push_back(State(it->second, isInit, isFin));
+        //Add the index of the state to the initial states if initial
         if (isInit) {
             initial_states = std::vector<int>(it->second);
         }
@@ -387,121 +379,211 @@ void Automaton::makeDeterministic() {
 
 }
 
-void Automaton::makeEFree() {
-    //TODO
+void Automaton::removeELoop() {
+
     bool found = false;
     std::vector<State> current_states;
     int last_state;
     std::vector<State> next_states;
     std::set<State *> all_states;
-    std::vector<State> new_states;
-    //for (int i = 0; i < states.size(); ++i) {
-    State &begin_state = states.at(0);
-    int begin_state_index = 0;
-    current_states.push_back(begin_state);
+    std::vector<State *> states_with_Etrans;
+
+    //Get all the states with epsilon transitions
+    for (int i = 0; i < states.size(); ++i) {
+        if (!states.at(i).getETransition().empty()) {
+            states_with_Etrans.push_back(&states.at(i));
+        }
+    }
+
     do {
-        next_states.clear();
-        for (int l = 0; l < current_states.size(); ++l) {
-            State current_state = current_states.at(l);
-            std::vector<Transition> eTrans = current_states.at(l).getETransition();
-            if (eTrans.size() != 0) {
-                for (int j = 0; j < eTrans.size(); ++j) {
-                    Transition current_trans = eTrans.at(j);
-                    if (current_trans.getTo()->getNumber() != begin_state.getNumber() &&
-                        current_trans.getTo()->getETransition().size() != 0) {
-                        std::pair<std::set<State *>::iterator, bool> ptr = all_states.insert(current_trans.getTo());
-                        if (ptr.second) {
-                            next_states.push_back(*current_trans.getTo());
+        State *begin_state = states_with_Etrans.at(0); //State from where the loop starts, if there is one
+        int begin_state_index = begin_state->getNumber();
+        current_states.push_back(*begin_state);
+
+        do {
+            next_states.clear();
+            for (int l = 0; l < current_states.size(); ++l) {
+                State current_state = current_states.at(l);
+                std::vector<Transition> eTrans = current_states.at(l).getETransition();
+                //If the current state has epsilon transitions
+                if (eTrans.size() != 0) {
+                    for (int j = 0; j < eTrans.size(); ++j) {
+                        Transition current_trans = eTrans.at(j);
+                        //If the destination state of this epsilon transitions has epsilon transitions and the destination state is not the beginning of the loop
+                        if (current_trans.getTo()->getNumber() != begin_state->getNumber() &&
+                            current_trans.getTo()->getETransition().size() !=
+                            0) { //Add it to the all_states set (added only if it hasn't been treated to avoid looping)
+                            std::pair<std::set<State *>::iterator, bool> ptr = all_states.insert(current_trans.getTo());
+                            //If it has been added, add it to the next states to treat
+                            if (ptr.second) {
+                                next_states.push_back(*current_trans.getTo());
+                            }
+                        } else if (current_trans.getTo()->getNumber() ==
+                                   begin_state->getNumber()) { //If the destination is the beginning of the loop,
+                            //the current state is the last state of the loop
+                            last_state = current_state.getNumber();
+                            found = true;
                         }
-                    } else if (current_trans.getTo()->getNumber() == begin_state.getNumber()) {
-                        last_state = current_state.getNumber();
-                        found = true;
                     }
                 }
             }
-        }
-        if (next_states.size() != 0) {
-            current_states = next_states;
-        }
-    } while (next_states.size() != 0 && found == false);
+            if (next_states.size() != 0) {
+                current_states = next_states;
+            }
+        } while (next_states.size() != 0 && found == false);
 
-    if (found) {
+        //If a loop has been found
+        if (found) {
+            found = false;
+            std::vector<Transition> transitions_to_add;
 
-        //TODO !! initial state and final state for fusion
-        //Last state has been found and a loop has been found
-        std::vector<int> transitions_to_delete;
-        std::vector<Transition> transitions_to_add;
-        for (int i = 0; i < states.size(); ++i) {
-            State *current_state = &states.at(i);
+            //For each state of the automaton
+            for (int i = 0; i < states.size(); ++i) {
+                State *current_state = &states.at(i);
 
-            for (int j = 0; j < current_state->getTransitions().size(); ++j) {
-                Transition *current_trans = &current_state->getTransitions().at(j);
+                //For each transition of each state
+                for (int j = 0; j < current_state->getTransitions().size(); ++j) {
+                    Transition *current_trans = &current_state->getTransitions().at(j);
+                    //If the destination is the beginning of the loop and it will not lead to a epsilon loop, add the transition with the destination being the end of the loop
+                    if (current_trans->getTo()->getNumber() == begin_state->getNumber() &&
+                        current_state->getNumber() != begin_state->getNumber() &&
+                        (current_state->getNumber() != last_state || current_trans->getLabel() != '#')) {
+                        transitions_to_add.push_back(Transition(&states.at(last_state), current_trans->getLabel()));
+                        current_trans->setTo(nullptr);
 
-                if (current_trans->getTo()->getNumber() == begin_state.getNumber() &&
-                    (current_state->getNumber() != last_state || current_trans->getLabel() != '#')) {
-                    transitions_to_add.push_back(Transition(&states.at(last_state), current_trans->getLabel()));
-                    current_trans->setTo(nullptr);
-                } else if (current_state->getNumber() == begin_state.getNumber() &&
-                           (current_trans->getTo()->getNumber() != last_state || current_trans->getLabel() != '#')) {
-                    states.at(last_state).addTransition(
-                            Transition(current_trans->getTo(), current_trans->getLabel()));
-                    current_trans->setTo(nullptr);
-                } else if (current_trans->getTo()->getNumber() == begin_state.getNumber() ||
-                           current_state->getNumber() == begin_state.getNumber()) {
-                    current_trans->setTo(nullptr);
+                    } else //Copy the transition from the beginning of the loop to the end of the loop (if it is not a epsilon transition on the end)
+                        if (current_state->getNumber() == begin_state->getNumber() &&
+                               (current_trans->getTo()->getNumber() != last_state ||
+                                current_trans->getLabel() != '#')) {
+                        states.at(last_state).addTransition(
+                                Transition(current_trans->getTo(), current_trans->getLabel()));
+                        current_trans->setTo(nullptr);
+
+                    } else //Mark the remaining transitions looping on the end to nullptr
+                        if (current_trans->getTo()->getNumber() == begin_state->getNumber() ||
+                               current_state->getNumber() == begin_state->getNumber()) {
+                        current_trans->setTo(nullptr);
+                    }
                 }
 
-            }
-            std::vector<Transition> transition_state = current_state->getTransitions();
-            //Remove transitions marked with nullptr
-            transition_state.erase(std::remove_if(transition_state.begin(),
-                                                  transition_state.end(), [](Transition &transition) {
-                        return transition.getTo() == nullptr;
-                    }), transition_state.end());
-            current_state->setTransitions(transition_state);
+                std::vector<Transition> transition_state = current_state->getTransitions();
+                //Remove transitions marked with nullptr
+                transition_state.erase(std::remove_if(transition_state.begin(),
+                                                      transition_state.end(), [](Transition &transition) {
+                            return transition.getTo() == nullptr;
+                        }), transition_state.end());
+                current_state->setTransitions(transition_state);
 
-            //Add the new transitions
-            for (int k = 0; k < transitions_to_add.size(); ++k) {
-                current_state->addTransition(transitions_to_add.at(k));
-            }
-            transitions_to_add.clear();
-        }
-        states.at(last_state).setInit(begin_state.isInit());
-        states.at(last_state).setFin(begin_state.isFin());
-
-        //Redo transition
-        for (int j = 0; j < states.size(); ++j) {
-            std::vector<Transition> new_trans;
-
-            for (int k = 0; k < states.at(j).getTransitions().size(); ++k) {
-
-                Transition *current_transition = &states.at(j).getTransitions().at(k);
-                if (current_transition->getTo()->getNumber() <= begin_state_index) {
-
-                    new_trans.push_back(Transition(current_transition->getTo(), current_transition->getLabel()));
-                } else {
-
-                    new_trans.push_back(Transition(&states.at(current_transition->getTo()->getNumber() - 1),
-                                                   current_transition->getLabel()));
+                //Add the new transitions
+                for (int k = 0; k < transitions_to_add.size(); ++k) {
+                    current_state->addTransition(transitions_to_add.at(k));
                 }
-
+                transitions_to_add.clear();
             }
-            states.at(j).setTransitions(new_trans);
+            states.at(last_state).setInit(begin_state->isInit() || states.at(last_state).isInit());
+            states.at(last_state).setFin(begin_state->isFin() || states.at(last_state).isFin());
+
+            //Redo transition because a state is going to be removed and change the vector
+            for (int j = 0; j < states.size(); ++j) {
+                std::vector<Transition> new_trans;
+                for (int k = 0; k < states.at(j).getTransitions().size(); ++k) {
+                    Transition *current_transition = &states.at(j).getTransitions().at(k);
+                    if (current_transition->getTo()->getNumber() <= begin_state_index) {
+                        new_trans.push_back(Transition(current_transition->getTo(), current_transition->getLabel()));
+                    } else {
+                        new_trans.push_back(Transition(&states.at(current_transition->getTo()->getNumber() - 1),
+                                                       current_transition->getLabel()));
+                    }
+                }
+                states.at(j).setTransitions(new_trans);
+                new_trans.clear();
+            }
+
+            //Remove the state representing the beginning of the loop
+            states.erase(states.begin() + begin_state_index);
+            for (int i = 0; i < states.size(); ++i) {
+                if (states.at(i).getNumber() >= begin_state_index) {
+                    states.at(i).setNumber(states.at(i).getNumber() - 1);
+                }
+            }
+            states_with_Etrans.clear();
+            //Redo the states with epsilon transition.
+            for (int i = 0; i < states.size(); ++i) {
+                if (!states.at(i).getETransition().empty()) {
+                    states_with_Etrans.push_back(&states.at(i));
+                }
+            }
         }
 
-        states.erase(states.begin() + begin_state_index);
-        for (int i = 0; i < states.size(); ++i) {
-            if (states.at(i).getNumber() >= begin_state_index) {
-                states.at(i).setNumber(
-                        states.at(i).getNumber() - 1);
-            }
-
+        //If it is not empty, reinitialize everything. else, end of while
+        if (states_with_Etrans.size() != 0) {
+            begin_state = states_with_Etrans.front();
+            states_with_Etrans.erase(states_with_Etrans.begin());
+            begin_state_index = begin_state->getNumber();
+            current_states.clear();
+            next_states.clear();
+            all_states.clear();
         }
+
+    } while (!states_with_Etrans.empty());
+}
+
+void Automaton::deleteETransition() {
+    std::vector<State *> states_with_Etrans;
+    std::vector<Transition> transitions_to_add;
+
+    //Get all states with ETrans
+    for (int i = 0; i < states.size(); ++i) {
+        if (states.at(i).getETransition().size() != 0) {
+            states_with_Etrans.push_back(&states.at(i));
+        }
+    }
+
+    while (states_with_Etrans.size() != 0) {
+        State *current_state = *states_with_Etrans.begin();
+        //For every epsilon transition
+        for (int i = 0; i < current_state->getETransition().size(); ++i) {
+            Transition current_Etrans = current_state->getETransition().at(i);
+
+            current_Etrans.getTo()->setInit(current_state->isInit());
+            if (current_Etrans.getTo()->isFin()) {
+                current_state->setFin(true);
+            }
+            //For each state
+            for (int j = 0; j < states.size(); ++j) {
+                //For each transition
+                for (int k = 0; k < states.at(j).getTransitions().size(); ++k) {
+                    Transition current_trans = states.at(j).getTransitions().at(k);
+                    //If the destination is the beginning of the epsilon transition, make it point to the destination as well
+                    if (current_trans.getTo()->getNumber() == current_state->getNumber()) {
+                        transitions_to_add.push_back(Transition(current_Etrans.getTo(), current_trans.getLabel()));
+                    }
+                }
+                for (int l = 0; l < transitions_to_add.size(); ++l) {
+                    states.at(j).addTransition(transitions_to_add.at(l));
+                }
+                transitions_to_add.clear();
+            }
+        }
+        states_with_Etrans.erase(states_with_Etrans.begin());
+    }
+
+    //Delete all epsilon transitions
+    for (int i = 0; i < states.size(); ++i) {
+        std::vector<Transition> transition_state = states.at(i).getTransitions();
+        transition_state.erase(std::remove_if(transition_state.begin(),
+                                              transition_state.end(), [](Transition &transition) {
+                    return transition.getLabel() == '#';
+                }), transition_state.end());
+        states.at(i).setTransitions(transition_state);
     }
 }
 
+void Automaton::makeEFree() {
+    removeELoop();
+    deleteETransition();
+}
 
-//}
 
 
 

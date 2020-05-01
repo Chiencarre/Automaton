@@ -10,7 +10,7 @@
 class State;
 class Transition {
 private:
-    State *to; //Index of state in the state vector
+    State *to;
     char label;
 
     Transition();
@@ -20,8 +20,6 @@ public:
     Transition(State *p_to, char p_label);
 
     void setTo(State *p_to);
-
-    void setLabel(char p_label);
 
     char getLabel();
 

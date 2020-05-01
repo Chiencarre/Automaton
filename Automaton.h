@@ -25,12 +25,6 @@ public:
     Automaton();
     Automaton(std::string p_file_name);
 
-    void setAlphabet(std::string p_alphabet);
-
-    void setStates(std::vector<State> p_states);
-
-    std::string getAlphabet();
-
     std::string print();
 
     bool isWordAccepted(std::string p_word);
@@ -38,6 +32,10 @@ public:
     void minimize();
 
     void makeDeterministic();
+
+    void removeELoop();
+
+    void deleteETransition();
 
     void makeEFree();
 

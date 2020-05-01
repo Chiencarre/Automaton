@@ -63,17 +63,13 @@ void State::addTransition(Transition p_transition) {
     transitions.push_back(p_transition);
 }
 
-void State::deleteTransition(int p_it_transition) {
-    //std::cout << transitions.at(p_it_transition).getTo()->getNumber() << " " << transitions.at(p_it_transition).getLabel();
-    transitions.erase(transitions.begin() +p_it_transition);
-}
 
 void State::setInit(bool p_init) {
     isInitial=p_init;
 }
 
 void State::setFin(bool p_fin) {
-
+    isFinal = p_fin;
 }
 
 void State::setNumber(int p_number) {

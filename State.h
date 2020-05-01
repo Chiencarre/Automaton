@@ -39,8 +39,6 @@ public:
 
     void addTransition(Transition p_transition);
 
-    void deleteTransition(int p_it_transition);
-
     void setInit(bool p_init);
 
     void setFin(bool p_fin);

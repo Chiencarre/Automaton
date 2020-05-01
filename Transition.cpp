@@ -15,10 +15,6 @@ void Transition::setTo(State* p_to) {
     to = p_to;
 }
 
-void Transition::setLabel(char p_label) {
-    label = p_label;
-}
-
 char Transition::getLabel() {
     return label;
 }
