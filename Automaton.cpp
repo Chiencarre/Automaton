@@ -160,7 +160,6 @@ void Automaton::minimize() {
         letter_info.clear();
     }
 
-    //Good until here
     std::vector<int> group;
     //If the state is final, group 0 in the next column. If not, group 1
     for (int i = 0; i < number_states; ++i) {
@@ -448,20 +447,23 @@ void Automaton::removeELoop() {
                     if (current_trans->getTo()->getNumber() == begin_state->getNumber() &&
                         current_state->getNumber() != begin_state->getNumber() &&
                         (current_state->getNumber() != last_state || current_trans->getLabel() != '#')) {
+
                         transitions_to_add.push_back(Transition(&states.at(last_state), current_trans->getLabel()));
                         current_trans->setTo(nullptr);
 
                     } else //Copy the transition from the beginning of the loop to the end of the loop (if it is not a epsilon transition on the end)
-                        if (current_state->getNumber() == begin_state->getNumber() &&
-                               (current_trans->getTo()->getNumber() != last_state ||
-                                current_trans->getLabel() != '#')) {
+                    if (current_state->getNumber() == begin_state->getNumber() &&
+                        (current_trans->getTo()->getNumber() != last_state ||
+                         current_trans->getLabel() != '#')) {
+
                         states.at(last_state).addTransition(
                                 Transition(current_trans->getTo(), current_trans->getLabel()));
                         current_trans->setTo(nullptr);
 
                     } else //Mark the remaining transitions looping on the end to nullptr
-                        if (current_trans->getTo()->getNumber() == begin_state->getNumber() ||
-                               current_state->getNumber() == begin_state->getNumber()) {
+                    if (current_trans->getTo()->getNumber() == begin_state->getNumber() ||
+                        current_state->getNumber() == begin_state->getNumber()) {
+
                         current_trans->setTo(nullptr);
                     }
                 }
@@ -507,7 +509,7 @@ void Automaton::removeELoop() {
                 }
             }
             states_with_Etrans.clear();
-            //Redo the states with epsilon transition.
+            //Repush the states having epsilon transition.
             for (int i = 0; i < states.size(); ++i) {
                 if (!states.at(i).getETransition().empty()) {
                     states_with_Etrans.push_back(&states.at(i));
@@ -556,7 +558,19 @@ void Automaton::deleteETransition() {
                     Transition current_trans = states.at(j).getTransitions().at(k);
                     //If the destination is the beginning of the epsilon transition, make it point to the destination as well
                     if (current_trans.getTo()->getNumber() == current_state->getNumber()) {
-                        transitions_to_add.push_back(Transition(current_Etrans.getTo(), current_trans.getLabel()));
+                        bool found = false;
+                        for (int l = 0; l < states.at(j).getTransitions().size(); ++l) {
+                            //If the transition already exists, found = true
+                            if (current_trans.getLabel() != states.at(j).getTransitions().at(l).getLabel() ||
+                                states.at(j).getTransitions().at(l).getTo()->getNumber() !=
+                                current_Etrans.getTo()->getNumber()) {
+                                found = true;
+                            }
+                        }
+                        //If it does not exist, create it
+                        if (!found) {
+                            transitions_to_add.push_back(Transition(current_Etrans.getTo(), current_trans.getLabel()));
+                        }
                     }
                 }
                 for (int l = 0; l < transitions_to_add.size(); ++l) {
