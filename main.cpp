@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
                 std::string result_file_name = argv[4];
                 Automaton automaton = Automaton(automaton_file_name);
                 readWordsFromFile(automaton, words_file_name, result_file_name);
+                std::cout << "Words read perfectly fine. Check the file " << result_file_name << ".\n";
             } else {
                 usage();
             }
@@ -28,6 +29,7 @@ int main(int argc, char **argv) {
                 Automaton automaton = Automaton(automaton_file_name);
                 automaton.minimize();
                 writeAutomatonToFile(automaton, result_file_name);
+                std::cout << "Minimization completed. Check the file " << result_file_name << ".\n";
             } else {
                 usage();
             };
@@ -39,6 +41,7 @@ int main(int argc, char **argv) {
                 Automaton automaton = Automaton(automaton_file_name);
                 automaton.makeDeterministic();
                 writeAutomatonToFile(automaton, result_file_name);
+                std::cout << "Determinisation completed. Check the file " << result_file_name << ".\n";
             } else {
                 usage();
             }
@@ -50,6 +53,7 @@ int main(int argc, char **argv) {
                 Automaton automaton = Automaton(automaton_file_name);
                 automaton.makeEFree();
                 writeAutomatonToFile(automaton, result_file_name);
+                std::cout << "Epsilon transtions removed. Check the file " << result_file_name << ".\n";
             } else {
                 usage();
             }
