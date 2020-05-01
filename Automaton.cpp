@@ -396,7 +396,8 @@ void Automaton::makeEFree() {
     std::set<State *> all_states;
     std::vector<State> new_states;
     //for (int i = 0; i < states.size(); ++i) {
-    State begin_state = states.at(0);
+    State &begin_state = states.at(0);
+    int begin_state_index = 0;
     current_states.push_back(begin_state);
     do {
         next_states.clear();
@@ -423,9 +424,10 @@ void Automaton::makeEFree() {
             current_states = next_states;
         }
     } while (next_states.size() != 0 && found == false);
+
     if (found) {
 
-        //TODO !! intial state and final state for fusion
+        //TODO !! initial state and final state for fusion
         //Last state has been found and a loop has been found
         std::vector<int> transitions_to_delete;
         std::vector<Transition> transitions_to_add;
@@ -435,14 +437,17 @@ void Automaton::makeEFree() {
             for (int j = 0; j < current_state->getTransitions().size(); ++j) {
                 Transition *current_trans = &current_state->getTransitions().at(j);
 
-                if(current_trans->getTo()->getNumber() == begin_state.getNumber() && (current_state->getNumber() != last_state || current_trans->getLabel() != '#')){
+                if (current_trans->getTo()->getNumber() == begin_state.getNumber() &&
+                    (current_state->getNumber() != last_state || current_trans->getLabel() != '#')) {
                     transitions_to_add.push_back(Transition(&states.at(last_state), current_trans->getLabel()));
                     current_trans->setTo(nullptr);
-                } else if (current_state->getNumber() == begin_state.getNumber() && (current_trans->getTo()->getNumber() != last_state || current_trans->getLabel() != '#')) {
+                } else if (current_state->getNumber() == begin_state.getNumber() &&
+                           (current_trans->getTo()->getNumber() != last_state || current_trans->getLabel() != '#')) {
                     states.at(last_state).addTransition(
                             Transition(current_trans->getTo(), current_trans->getLabel()));
                     current_trans->setTo(nullptr);
-                } else if (current_trans->getTo()->getNumber() == begin_state.getNumber() || current_state->getNumber() == begin_state.getNumber()) {
+                } else if (current_trans->getTo()->getNumber() == begin_state.getNumber() ||
+                           current_state->getNumber() == begin_state.getNumber()) {
                     current_trans->setTo(nullptr);
                 }
 
@@ -461,11 +466,42 @@ void Automaton::makeEFree() {
             }
             transitions_to_add.clear();
         }
+        states.at(last_state).setInit(begin_state.isInit());
+        states.at(last_state).setFin(begin_state.isFin());
 
+        //Redo transition
+        for (int j = 0; j < states.size(); ++j) {
+            std::vector<Transition> new_trans;
+
+            for (int k = 0; k < states.at(j).getTransitions().size(); ++k) {
+
+                Transition *current_transition = &states.at(j).getTransitions().at(k);
+                if (current_transition->getTo()->getNumber() <= begin_state_index) {
+
+                    new_trans.push_back(Transition(current_transition->getTo(), current_transition->getLabel()));
+                } else {
+
+                    new_trans.push_back(Transition(&states.at(current_transition->getTo()->getNumber() - 1),
+                                                   current_transition->getLabel()));
+                }
+
+            }
+            states.at(j).setTransitions(new_trans);
+        }
+
+        states.erase(states.begin() + begin_state_index);
+        for (int i = 0; i < states.size(); ++i) {
+            if (states.at(i).getNumber() >= begin_state_index) {
+                states.at(i).setNumber(
+                        states.at(i).getNumber() - 1);
+            }
+
+        }
     }
+}
+
 
 //}
 
 
-}
 

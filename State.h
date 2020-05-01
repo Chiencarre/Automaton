@@ -41,6 +41,12 @@ public:
 
     void deleteTransition(int p_it_transition);
 
+    void setInit(bool p_init);
+
+    void setFin(bool p_fin);
+
+    void setNumber(int p_number);
+
     std::string print();
 };
 
